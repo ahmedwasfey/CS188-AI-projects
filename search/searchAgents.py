@@ -295,7 +295,7 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        return (self.startingPosition , (False,False,False,False))
+        return (self.startingPosition , [False,False,False,False])
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -304,7 +304,7 @@ class CornersProblem(search.SearchProblem):
         """
         "*** YOUR CODE HERE ***"
         for i in state[1]:
-            if i ==False :
+            if i is False :
                 return 0
         return 1 
         util.raiseNotDefined()
@@ -335,11 +335,15 @@ class CornersProblem(search.SearchProblem):
             nextx, nexty = int(curx + dx), int(cury + dy)
             if not self.walls[nextx][nexty]:
                 for i in range(0,4):
-                    isCollected[i]= (self.corners[i]==(nextx , nexty) or isCollected[i])
+                    if isCollected[i] is False:
+
+                        isCollected[i] = (self.corners[i]==(nextx , nexty))
+                        #print self.corners[i], (nextx,nexty), (self.corners[i]==(nextx , nexty))
                 #print isCollected
-                successors.append(  ( ((nextx,nexty),tuple(isCollected)) ,action, 1))
+                successors.append(  ( ((nextx,nexty),(isCollected)) ,action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
+        #print successors
         return successors
 
     def getCostOfActions(self, actions):
@@ -538,7 +542,7 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-        return search.astar(problem)
+        return search.bfs(problem) #here we can use dfs , bfs , ucs insted of bfs , astar = ucs = bfs.
         
         #the older  , slower - and not very accurate - approach 
 

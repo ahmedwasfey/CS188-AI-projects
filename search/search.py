@@ -114,16 +114,17 @@ def breadthFirstSearch(problem):
     # print (problem.getStartState())
     # print problem.getSuccessors(problem.getStartState())
     q= util.Queue()
-    visited = set()
+    visited =[]
     start_node=(problem.getStartState(), [])
     q.push(start_node)
     while not q.isEmpty():
         cur_state , cur_path = q.pop()
         #print cur_path
         if problem.isGoalState(cur_state):
-           return cur_path
+            #print cur_state
+            return cur_path
         if not cur_state in visited :
-            visited.add(cur_state)
+            visited.append(cur_state)
             for child , action , cost in problem.getSuccessors(cur_state):
                 child_node=(child, cur_path+[action])
                 #print child

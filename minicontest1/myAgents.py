@@ -15,7 +15,7 @@ from game import Agent
 from searchProblems import PositionSearchProblem
 
 import util
-import time
+import time , random
 import search
 
 """
@@ -23,7 +23,10 @@ IMPORTANT
 `agent` defines which agent you will use. By default, it is set to ClosestDotAgent,
 but when you're ready to test your own agent, replace it with MyAgent
 """
-def createAgents(num_pacmen, agent='ClosestDotAgent'):
+my_dic ={} 
+taken ={}
+steps={}
+def createAgents(num_pacmen, agent='MyAgent'):
     return [eval(agent)(index=i) for i in range(num_pacmen)]
 
 class MyAgent(Agent):
@@ -35,9 +38,68 @@ class MyAgent(Agent):
         """
         Returns the next action the agent will take
         """
-
-        "*** YOUR CODE HERE ***"
-
+        food = state.getFood()
+        if len(my_dic)==0:
+            food_pos = food.asList()
+            walls = state.getWalls()
+            top =walls.height-1
+            right = walls.width-1
+            
+            for i in range(1,right):
+                for j in range(1, top):
+                    #print (i,j) 
+                    if not walls[i][j]:
+                        my_dic[(i,j)]=[]
+                        for k in food_pos :
+                            dis=util.manhattanDistance((i,j), k)
+                            #dis=util.euclideanDistance((i,j), k)
+                            #dis= mazeDistance((i,j), k ,state)
+                            my_dic[(i,j)].append([dis , k])
+                        my_dic[(i,j)].sort()
+                        #my_dic[(i,j)].reverse()
+                        # print i , j ,  my_dic[(i,j)]
+        position = state.getPacmanPosition(self.index)
+        #print (taken)
+        if self.index in taken.keys():
+            fx,fy = taken[self.index]
+            if food[fx][fy]:
+               turn , path = steps[self.index]
+               steps[self.index][0]=turn+1
+               #print (path[turn])
+               return path[turn]
+        for i in my_dic[position]:
+            fx,fy = i[1]
+            if food[fx][fy]:
+              if i[1] not in taken.values():  
+                taken[self.index]=i[1]
+                prob = PositionSearchProblem(state, start= position , goal=i[1],warn=False, visualize=False)
+                steps[self.index]=[1,search.bfs(prob)] 
+                return steps[self.index][1][0]
+        ff= food.asList()
+        prob = PositionSearchProblem(state, start= position , goal=ff[0],warn=False, visualize=False)
+        steps[self.index]=[1,search.bfs(prob)] 
+        return steps[self.index][1][0]
+        ########## old trivial failed solution #####
+               
+        #         indx = self.index
+        #         if  indx in my_dic.keys():
+        #             turn , path = my_dic[indx]
+        #             if turn <len(path):
+        #                 my_dic[indx][0]= turn+1
+        #                 return path[turn]         
+        #             print("found" , px.getStartState())
+        #         food = state.getFood()
+        #         food_list = food.asList()
+        #         r = random.randrange(len(food_list))
+        #         dot = food_list[r-1]
+        #         print (food[dot[0]][dot[1]])
+        #         startingPosition = state.getPacmanPosition(indx)
+        #         print (startingPosition, dot)
+        #         prob = PositionSearchProblem(state,agentIndex= indx ,start=startingPosition ,goal= dot )
+        #         print ( prob.getStartState())
+        #         my_dic[indx]=[1,search.bfs(prob)]
+        #         return my_dic[indx][1][0]
+        
         raise NotImplementedError()
 
     def initialize(self):
@@ -46,8 +108,10 @@ class MyAgent(Agent):
         when the agent is first created. If you don't need to use it, then
         leave it blank
         """
-
-        "*** YOUR CODE HERE"
+       # self.walls = s
+        #self.top, self.right = self.walls.height-1, self.walls.width-1
+        return 0
+        "*** YOUR CODE HERE" 
 
         raise NotImplementedError()
 
@@ -68,8 +132,7 @@ class ClosestDotAgent(Agent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState, self.index)
-        return search.astar(problem)
-
+        return search.bfs(problem)
         
         util.raiseNotDefined()
 
@@ -111,3 +174,21 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         return self.food[x][y]
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
+def mazeDistance(point1, point2, gameState):
+    """
+    Returns the maze distance between any two points, using the search functions
+    you have already built. The gameState can be any game state -- Pacman's
+    position in that state is ignored.
+
+    Example usage: mazeDistance( (2,4), (5,6), gameState)
+
+    This might be a useful helper function for your ApproximateSearchAgent.
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+    walls = gameState.getWalls()
+    assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
+    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
+    prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
+    return len(search.bfs(prob))
