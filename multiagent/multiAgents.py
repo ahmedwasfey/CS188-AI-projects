@@ -69,6 +69,8 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+        if action == 'Stop':
+             return -float("inf")
         curPos = currentGameState.getPacmanPosition()
         curGhostsPos = [ghostState.start.pos for ghostState in currentGameState.getGhostStates()]
         curNearstGhost = min ([euclideanDistance(curPos, Gpos) for Gpos in curGhostsPos ])
@@ -129,11 +131,45 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+    
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
     """
-
+    def value (self , gameState ,my_depth , agent ):
+        #print(my_depth) 
+        if my_depth == self.depth or gameState.isWin() or gameState.isLose():
+            gcs = gameState.getScore()
+            return gcs
+        if agent == 'min':
+            return  self.minv(gameState, my_depth)
+        if agent == 'max':
+            return self.maxv(gameState , my_depth)
+    def maxv (self , gameState,d):
+        if gameState.isWin() or gameState.isLose():
+            return gameState.getScore()
+        v= -9999999999
+        ans = None
+        leg_act = gameState.getLegalActions(0)
+        #leg_act.remove('Stop')
+        for act in leg_act :
+            sucss_state = gameState.generateSuccessor(0 , act)
+            v =max(v, self.value(sucss_state,d, 'min')) 
+        return v 
+    def minv(self , gameState, d  , idx =1 ):
+        if gameState.isWin() or gameState.isLose():
+            return gameState.getScore()
+        v = 99999999999
+        ans =None       
+        leg_act = gameState.getLegalActions(idx)
+        for act in leg_act :
+            sucss_state = gameState.generateSuccessor(idx , act)
+            if idx  +1==gameState.getNumAgents():
+               v =min (v, self.value(sucss_state , d+1, 'max'))    
+            else :
+                v =min (v,self.minv (sucss_state, d , idx+1 ))
+        
+        return v
     def getAction(self, gameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -158,6 +194,17 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+        legal = gameState.getLegalActions(0)
+        ans_act = None 
+        mxv = -999999
+        for act in legal :
+            succ_state = gameState.generateSuccessor(0 ,act)
+            v= self.value(succ_state , 0 , 'min')
+            if v>= mxv :#and not act == 'Stop':
+                mxv =v
+                ans_act = act        
+        #print (ans_act)
+        return ans_act
         util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
