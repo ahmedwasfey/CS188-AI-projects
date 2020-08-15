@@ -199,8 +199,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
         mxv = -999999
         for act in legal :
             succ_state = gameState.generateSuccessor(0 ,act)
+            #px , py = succ_state.getPacmanPosition()
+            #walls = succ_state.getWalls()
             v= self.value(succ_state , 0 , 'min')
-            if v>= mxv :#and not act == 'Stop':
+            if v>= mxv :#and not act == 'Stop' and not walls[px][py]:
                 mxv =v
                 ans_act = act        
         #print (ans_act)
@@ -211,12 +213,59 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
     """
-
+    def value(self , gameState , cur_depth  , alpha = -9999999990 , beta=9999990 , agent=1  ):
+        #print( cur_depth , alpha , beta, agent , gameState.isWin() or gameState.isLose())
+        if cur_depth == self.depth or gameState.isWin() or gameState.isLose():
+            return gameState.getScore()
+        if agent == 0 :
+            return self.maxVal(gameState , cur_depth ,alpha , beta)
+        else :
+            return self.minVal(gameState ,cur_depth  , alpha,beta , agent )
+    def maxVal(self , gameState , d , alpha , beta ):
+        v= -99999999
+        legalActs = gameState.getLegalActions(0)
+        for act in legalActs :
+            succ_state= gameState.generateSuccessor(0 , act)
+            v= max(v , self.value(succ_state , d, alpha , beta , 1 ))
+            if v> beta :
+                return v 
+            alpha = max(v, alpha)
+            # print("alpha =" , alpha)
+            # print("beta =" , beta)
+        return v
+    def minVal(self , gameState , d , alpha , beta , agent):
+        #print ("min")
+        v= 9999999999
+        legalActs = gameState.getLegalActions(agent)
+        for act in legalActs :
+            succ_state = gameState.generateSuccessor(agent , act)
+            if agent+1 == gameState.getNumAgents() :
+                v = min (v , self.value(succ_state , d+1 , alpha , beta , 0))
+            else :
+                v= min (v , self.value(succ_state , d , alpha , beta , agent+1))
+                #print (v , alpha)
+            if v < alpha :
+                return v
+            beta = min (beta , v)
+        return v
     def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        #print (gameState.getNumAgents())
+        legals = gameState.getLegalActions(0)
+        mxv =-99999999
+        alpha_root =-99999999
+        ans_action =None
+        for act in legals:
+            succ_state = gameState.generateSuccessor(0 , act)
+            v= self.value(succ_state , 0 , alpha= alpha_root)
+            if v>mxv :
+                mxv=v
+                ans_action = act
+                alpha_root = v
+        return ans_action
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -231,6 +280,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
+        
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
