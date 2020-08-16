@@ -15,7 +15,6 @@
 from util import manhattanDistance
 from game import Directions
 import random, util
-
 from game import Agent
 def euclideanDistance(xy1 , xy2):
     "Returns the Euclidean distance between points xy1 and xy2"
@@ -297,8 +296,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 v+=self.value(succ_state , d+1 , 0)
             else :
                 v+= self.value(succ_state , d, agent+1)
-        
         return v/ len(legalActs)
+
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
@@ -310,16 +309,19 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         rightAction=None
         legalActs = gameState.getLegalActions(0)
         for act in legalActs :
-            succ_state=gameState.generateSuccessor(0 ,act)
-            v= self.value(succ_state , 0 , 1)
-            if v> mxv  :
-                mxv=v
-                rightAction= act
+            if not act == 'Stop':
+                succ_state=gameState.generateSuccessor(0 ,act)
+                v= self.value(succ_state , 0 , 1)
+                if v> mxv  :
+                    mxv=v
+                    rightAction= act
+        #print(rightAction)        
         return rightAction
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
+    global zipy
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
@@ -327,6 +329,31 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    win =0
+    lose =0
+    if currentGameState.isWin():
+        win = 10000000000000000000000000000
+    elif currentGameState.isLose():
+        lose = -10000000000000000000000000000
+    curPos = currentGameState.getPacmanPosition()
+    curGhostsPos = [ghostState.start.pos for ghostState in currentGameState.getGhostStates()]
+    curNearstGhost = min ([euclideanDistance(curPos, Gpos) for Gpos in curGhostsPos ])
+    curFood = currentGameState.getFood()
+    curFoodList = curFood.asList()
+    curFoodDis= [euclideanDistance(curPos , z) for z in curFoodList]
+    nearstFood =min(curFoodDis)
+    curCaps = currentGameState.getCapsules()
+    curCapsDis = [euclideanDistance(curPos , z) for z in curCaps]
+    avg_dis_caps = sum(curCapsDis)/len(curCapsDis)
+    nearstCap = min(curCapsDis)
+    average_distance_to_food= sum(curFoodDis)/len(curFoodDis)
+    total_eval= win+ lose+nearstFood+2*nearstCap + 4*average_distance_to_food+7*avg_dis_caps\
+         - 7*curNearstGhost + currentGameState.getScore() 
+         # I have choosed these numbers randomly but they can be considered as weights for each parameter
+    # this evaluation function is bullshit Agent will play for a very long time without even losing or wining 
+    # but there is a good one posted on github: (https://raw.githubusercontent.com/JoshGelua/UC-Berkeley-Pacman-Project2/master/multiAgents.py)
+    #print(total_eval)
+    return (total_eval)
     util.raiseNotDefined()
 
 # Abbreviation
