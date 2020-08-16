@@ -139,8 +139,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
     def value (self , gameState ,my_depth , agent ):
         #print(my_depth) 
         if my_depth == self.depth or gameState.isWin() or gameState.isLose():
-            gcs = gameState.getScore()
-            return gcs
+            return self.evaluationFunction(gameState)
+            
         if agent == 'min':
             return  self.minv(gameState, my_depth)
         if agent == 'max':
@@ -216,7 +216,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     def value(self , gameState , cur_depth  , alpha = -9999999990 , beta=9999990 , agent=1  ):
         #print( cur_depth , alpha , beta, agent , gameState.isWin() or gameState.isLose())
         if cur_depth == self.depth or gameState.isWin() or gameState.isLose():
-            return gameState.getScore()
+            return self.evaluationFunction(gameState)
         if agent == 0 :
             return self.maxVal(gameState , cur_depth ,alpha , beta)
         else :
@@ -272,7 +272,33 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
-
+    def value(self , gameState , cur_depth , agent=1):
+        #print(cur_depth)
+        if self.depth == cur_depth or gameState.isWin() or gameState.isLose():
+            #print("yes !")
+            return self.evaluationFunction(gameState)
+        if agent == 0 :
+            return self.MaxVal(gameState , cur_depth )
+        else :
+            return self.ExpecVal(gameState , cur_depth , agent)
+    def MaxVal(self , gameState , d):
+        v= -99999999
+        legalActs = gameState.getLegalActions(0)
+        for act in legalActs :
+            succ_state = gameState.generateSuccessor(0 , act)
+            v= max(v, self.value(succ_state , d , 1))
+        return v
+    def ExpecVal(self , gameState , d , agent ):
+        v=0
+        legalActs = gameState.getLegalActions(agent)
+        for act in legalActs :
+            succ_state = gameState.generateSuccessor(agent , act)
+            if agent +1 == gameState.getNumAgents():
+                v+=self.value(succ_state , d+1 , 0)
+            else :
+                v+= self.value(succ_state , d, agent+1)
+        
+        return v/ len(legalActs)
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
@@ -280,7 +306,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        
+        mxv=-999999
+        rightAction=None
+        legalActs = gameState.getLegalActions(0)
+        for act in legalActs :
+            succ_state=gameState.generateSuccessor(0 ,act)
+            v= self.value(succ_state , 0 , 1)
+            if v> mxv  :
+                mxv=v
+                rightAction= act
+        return rightAction
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
