@@ -173,7 +173,7 @@ class ReinforcementAgent(ValueEstimationAgent):
             actionFn = lambda state: state.getLegalActions()
         self.actionFn = actionFn
         self.episodesSoFar = 0
-        self.accumTrainRewards = 0.0
+        self.accumTrainRewards = 0.0 
         self.accumTestRewards = 0.0
         self.numTraining = int(numTraining)
         self.epsilon = float(epsilon)
